@@ -6,6 +6,20 @@ Metadata:
   License: Apache-2.0
 
 Parameters:
+  Name:
+    Description: 'Name of the stack'
+    Type: 'String'
+    MinLength: '1'
+    MaxLength: '255'
+    Default: 'Lab01-Group7-EC2'
+    ConstraintDescription: 'must be a valid stack name.'
+  sshPrivateKey:
+    Description: 'SSH private key'
+    Type: 'String'
+    MinLength: '1'
+    MaxLength: '4096'
+    ConstraintDescription: 'must be a valid private key.'
+    NoEcho: 'true'
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
@@ -59,7 +73,7 @@ Parameters:
     Default: t3.small
     ConstraintDescription: must be a valid EC2 instance type.
 
-  SSHLocation:
+  AllowSSHIP:
     Description: The IP address range that can be used to SSH to the EC2 instances
     Type: String
     Default: 0.0.0.0/0
@@ -89,9 +103,26 @@ Resources:
         - !GetAtt SecurityGroupPublicInstance.GroupId
       KeyName: !Ref KeyName
       ImageId: !Ref LatestAmiId
+      UserData: !Base64
+        Fn::Sub: |-
+          #!/bin/bash
+          echo "${sshPrivateKey}" > /home/ec2-user/.ssh/id_rsa
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
       Tags:
         - Key: Lab01
           Value: 'EC2PublicInstance'
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref Name
+              - '-public-instance'
+  IPAddress:
+    Type: AWS::EC2::EIP
+  IPAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref EC2PublicInstance
+      AllocationId: !GetAtt IPAddress.AllocationId
   EC2PrivateInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -104,36 +135,54 @@ Resources:
       Tags:
         - Key: Lab01
           Value: 'EC2PrivateInstance'
-
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref Name
+              - '-private-instance'
   SecurityGroupPublicInstance:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupDescription: 'Allowing all incoming and outgoing traffic.'
+      GroupDescription: 'Allowing only ssh incoming and all outgoing traffic.'
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: 'tcp'
           FromPort: '22'
           ToPort: '22'
-          CidrIp: !Ref SSHLocation
+          CidrIp: !Ref AllowSSHIP
+        - IpProtocol: 'icmp'
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/24'
       SecurityGroupEgress:
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'
       Tags:
-        - Key: Lab01
-          Value: 'SecurityGroupPublicInstance'
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref Name
+              - '-SecurityGroup-public-instance'
   SecurityGroupPrivateInstance:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupDescription: 'Allowing only SSH in subnet public proxy.'
+      GroupDescription: 'Allowing only SSH and ping in from public subnet'
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: 'tcp'
           FromPort: '22'
           ToPort: '22'
+          CidrIp: "10.0.1.0/24"
+        - IpProtocol: 'icmp'
+          FromPort: '-1'
+          ToPort: '-1'
           CidrIp: '10.0.1.0/24'
       SecurityGroupEgress:
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'
       Tags:
-        - Key: Lab01
-          Value: 'SecurityGroupPrivateInstance'
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref Name
+              - '-SecurityGroup-private-instance'
