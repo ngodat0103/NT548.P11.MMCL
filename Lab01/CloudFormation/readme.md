@@ -9,12 +9,9 @@ This repository contains AWS CloudFormation templates to set up a VPC with publi
 - An existing EC2 KeyPair
 
 ## Files
-
-- `CloudFormation/network.yml`: Creates a VPC with public and private subnets, route tables, and a NAT gateway.
-- `CloudFormation/security.yml`: Sets up security groups and network ACLs.
-- `CloudFormation/compute.yml`: Deploys EC2 instances in the public and private subnets created by the VPC template.
-- `CloudFormation/0-vpc.yml`: Main stack that references the network, security, and compute stacks.
-
+- `CloudFormation/0-VPC.yml`: Creates a VPC with public and private subnets, route tables, and a NAT gateway.
+- `CloudFormation/1-security.yml`: Sets up security groups and network ACLs.
+- `CloudFormation/2-ec2.yml`: Deploys EC2 instances in the public and private subnets created by the VPC template.
 ## Usage
 
 ### Step 1: Deploy the Main Stack
