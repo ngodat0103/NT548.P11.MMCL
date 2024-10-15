@@ -29,3 +29,60 @@ This repository contains AWS CloudFormation templates to set up a VPC with publi
 Replace `<YourSSHPrivateKey>`, `<YourKeyPairName>`, and other parameters in the `0-vpc.yml` file with the appropriate values.
 
 This command will deploy the network, security, and compute stacks as nested stacks, setting up the entire infrastructure in a modular way.
+
+## High-Level Description
+
+### 1. Security Stack (`1-security.yml`)
+
+This template is responsible for setting up the security configurations for the AWS infrastructure. It includes:
+
+- **Network ACLs**: Configures a public network ACL with rules to allow all inbound and outbound traffic.
+- **Security Groups**: 
+  - **Public Instance Security Group**: Allows SSH and ICMP traffic from any IP.
+  - **Private Instance Security Group**: Allows SSH and ICMP traffic from the public subnet only.
+- **Associations**: Associates the public subnet with the public network ACL.
+
+### 2. EC2 Stack (`2-ec2.yml`)
+
+This template handles the creation and configuration of EC2 instances within the VPC. It includes:
+
+- **EC2 Instances**:
+  - **Public EC2 Instance**: Launched in the public subnet with an associated Elastic IP for internet access.
+  - **Private EC2 Instance**: Launched in the private subnet without direct internet access.
+- **Elastic IP**: Allocates and associates an Elastic IP with the public EC2 instance for external connectivity.
+- **Parameters**: Allows customization of instance types, key pairs, and security group IDs.
+
+## Networking Diagram
+
+Below is a conceptual networking diagram illustrating the setup:
+
+```
++-------------------+       +-------------------+
+|   Public Subnet   |       |   Private Subnet  |
+|                   |       |                   |
+|  +-------------+  |       |  +-------------+  |
+|  |  EC2 Public |  |       |  | EC2 Private |  |
+|  |  Instance   |  |       |  |  Instance   |  |
+|  +-------------+  |       |  +-------------+  |
+|       |           |       |                   |
+|       | ElasticIP |       |                   |
++-------+-----------+       +-------------------+
+        |                           |
+        +---------------------------+
+        |                           |
++-------v---------------------------v-------+
+|                VPC                        |
+|                                           |
+|  +-----------------+   +----------------+ |
+|  | Internet Gateway|   |   NAT Gateway  | |
+|  +-----------------+   +----------------+ |
+|                                           |
++-------------------------------------------+
+```
+
+- **Public Subnet**: Contains the public EC2 instance with an Elastic IP, allowing it to communicate with the internet.
+- **Private Subnet**: Contains the private EC2 instance, which can only communicate with the internet through the NAT Gateway.
+- **Internet Gateway**: Provides internet access to resources in the public subnet.
+- **NAT Gateway**: Allows resources in the private subnet to access the internet without exposing them to inbound traffic.
+
+This setup ensures a secure and scalable infrastructure, with clear separation between public and private resources.
