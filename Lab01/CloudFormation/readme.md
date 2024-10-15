@@ -1,6 +1,6 @@
-# CloudFormation Templates for VPC and EC2 Instances
+# CloudFormation Templates for Modularized VPC and EC2 Instances
 
-This repository contains AWS CloudFormation templates to set up a VPC with public and private subnets, and deploy EC2 instances in those subnets.
+This repository contains AWS CloudFormation templates to set up a VPC with public and private subnets, and deploy EC2 instances in those subnets using a modular approach.
 
 ## Prerequisites
 
@@ -10,28 +10,22 @@ This repository contains AWS CloudFormation templates to set up a VPC with publi
 
 ## Files
 
-- `CloudFormation/0-vpc.yml`: Creates a VPC with public and private subnets, route tables, and a NAT gateway.
-- `CloudFormation/ec2.yml`: Deploys EC2 instances in the public and private subnets created by the VPC template.
+- `CloudFormation/network.yml`: Creates a VPC with public and private subnets, route tables, and a NAT gateway.
+- `CloudFormation/security.yml`: Sets up security groups and network ACLs.
+- `CloudFormation/compute.yml`: Deploys EC2 instances in the public and private subnets created by the VPC template.
+- `CloudFormation/0-vpc.yml`: Main stack that references the network, security, and compute stacks.
 
 ## Usage
 
-### Step 1: Create the VPC Stack
+### Step 1: Deploy the Main Stack
 
 1. Navigate to the `CloudFormation` directory.
-2. Run the following command to create the VPC stack:
+2. Run the following command to create the main stack:
 
-    ```sh
-    aws cloudformation create-stack --stack-name my-vpc-stack --template-body file://0-vpc.yml --capabilities CAPABILITY_NAMED_IAM
-    ```
+ ```sh
+ aws cloudformation create-stack --stack-name my-main-stack --template-body file://main.yml --capabilities CAPABILITY_NAMED_IAM
+ ```
 
-### Step 2: Create the EC2 Stack
+Replace `<YourSSHPrivateKey>`, `<YourKeyPairName>`, and other parameters in the `0-vpc.yml` file with the appropriate values.
 
-1. After the VPC stack is created, run the following command to create the EC2 stack:
-
-    ```sh
-    aws cloudformation create-stack --stack-name my-ec2-stack --template-body file://ec2.yml --parameters ParameterKey=VPC,ParameterValue=<VPC_ID> ParameterKey=PublicSubnetID,ParameterValue=<PublicSubnetID> ParameterKey=PrivateSubnetID,ParameterValue=<PrivateSubnetID> ParameterKey=KeyName,ParameterValue=<YourKeyPairName>
-    ```
-
-   Replace `<VPC_ID>`, `<PublicSubnetID>`, `<PrivateSubnetID>`, and `<YourKeyPairName>` with the appropriate values from the outputs of the VPC stack.
-
-## VPC diagram
+This command will deploy the network, security, and compute stacks as nested stacks, setting up the entire infrastructure in a modular way.
