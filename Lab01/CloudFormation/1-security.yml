@@ -1,15 +1,20 @@
 AWSTemplateFormatVersion: "2010-09-09"
-
-Description: 'Security Stack.'
-
+Description: 'Security Configuration.'
 Parameters:
+  AllowSSHIP:
+    Description: 'The IP address range that is allowed to SSH into the EC2 instances. This should be in CIDR notation (e.g., 0.0.0.0/0 for all IPs).'
+    Type: String
+    Default: 0.0.0.0/0
+    MinLength: 9
+    MaxLength: 18
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: 'Must be a valid IP CIDR range of the form x.x.x.x/x.'
   VPC:
     Type: AWS::EC2::VPC::Id
+    Description: VPC ID
   PublicSubnetID:
     Type: AWS::EC2::Subnet::Id
     Description: Public subnet ID
-
-
 Resources:
   PublicNetworkAcl:
     Type: AWS::EC2::NetworkAcl
@@ -67,11 +72,11 @@ Resources:
         - IpProtocol: 'tcp'
           FromPort: '22'
           ToPort: '22'
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref AllowSSHIP
         - IpProtocol: 'icmp'
           FromPort: '-1'
           ToPort: '-1'
-          CidrIp: '0.0.0.0/24'
+          CidrIp: !Ref AllowSSHIP
       SecurityGroupEgress:
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'

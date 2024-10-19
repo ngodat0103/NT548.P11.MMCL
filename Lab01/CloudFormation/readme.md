@@ -12,20 +12,34 @@ This repository contains AWS CloudFormation templates to set up a VPC with publi
 - `CloudFormation/0-VPC.yml`: Creates a VPC with public and private subnets, route tables, and a NAT gateway.
 - `CloudFormation/1-security.yml`: Sets up security groups and network ACLs.
 - `CloudFormation/2-ec2.yml`: Deploys EC2 instances in the public and private subnets created by the VPC template.
+- `deploy-all.sh`: A script to automate the deployment of all CloudFormation stacks in order.
+
 ## Usage
 
-### Step 1: Deploy the Main Stack
+### Step 1: Deploy the Stacks Using the Script
 
 1. Navigate to the `CloudFormation` directory.
-2. Run the following command to create the main stack:
+2. Make the script executable (if not already):
+   ```sh
+   chmod +x deploy-all.sh
+   ```
+3. Run the script to deploy all stacks:
+   ```sh
+   ./deploy-all.sh [region] [stack-name-prefix] [allow-ssh-ip] [instance-type]
+   ```
 
- ```sh
- aws cloudformation create-stack --stack-name my-main-stack --template-body file://main.yml --capabilities CAPABILITY_NAMED_IAM
- ```
+   - `region`: (Optional) The AWS region to deploy the stacks. Default is `us-east-1`.
+   - `stack-name-prefix`: (Optional) A prefix for the stack names. Default is `Group7`.
+   - `allow-ssh-ip`: (Optional) The IP range allowed for SSH access. Default is `0.0.0.0/0`.
+   - `instance-type`: (Optional) The EC2 instance type. Default is `t3.small`.
 
-Replace `<YourSSHPrivateKey>`, `<YourKeyPairName>`, and other parameters in the `0-vpc.yml` file with the appropriate values.
+### Example Command
 
-This command will deploy the network, security, and compute stacks as nested stacks, setting up the entire infrastructure in a modular way.
+```sh
+./deploy-all.sh us-west-2 CustomStackPrefix 192.168.1.0/24 t2.micro
+```
+
+This command will deploy the stacks in the `us-west-2` region with a custom stack name prefix, allowing SSH access from the `192.168.1.0/24` IP range, and using `t2.micro` as the instance type.
 
 ## High-Level Description
 
@@ -81,5 +95,3 @@ Below is a conceptual networking diagram illustrating the setup:
 - **Private Subnet**: Contains the private EC2 instance, which can only communicate with the internet through the NAT Gateway.
 - **Internet Gateway**: Provides internet access to resources in the public subnet.
 - **NAT Gateway**: Allows resources in the private subnet to access the internet without exposing them to inbound traffic.
-
-This setup ensures a secure and scalable infrastructure, with clear separation between public and private resources.

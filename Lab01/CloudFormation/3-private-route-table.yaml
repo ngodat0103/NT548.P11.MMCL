@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 'Set up Route Table'
+Parameters:
+  PrivateSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: ""
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: ""
+Resources:
+  ElasticIP0:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  NATGateway0:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIP0.AllocationId
+      SubnetId: !Ref PrivateSubnetId
+  PrivateRouteTable0:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCId
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ""
+            - - !Ref VPCId
+              - -private-route-table-0
+  PrivateRouteToInternet0:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable0
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway0
+  PrivateSubnetRouteTableAssociation0:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetId
+      RouteTableId: !Ref PrivateRouteTable0
+Outputs:
+  PrivateRouteTable0:
+      Description: The ID of the private route table
+      Value: !Ref PrivateRouteTable0
+  PrivateRouteTableAssociation0:
+      Description: The ID of the private route table association
+      Value: !Ref PrivateSubnetRouteTableAssociation0

@@ -1,7 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-
 Description: 'Network Stack.'
-
 Parameters:
   VPCName:
     Description: The name of the VPC being created.
@@ -13,10 +11,9 @@ Mappings:
     VPC:
       CIDR: 10.0.0.0/16
     Public0:
-      CIDR: 10.0.1.0/24
+      CIDR: 10.0.1.0/24        
     Private0:
       CIDR: 10.0.2.0/24
-
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -74,103 +71,17 @@ Resources:
             - - !Ref VPCName
               - -private-
 
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: Application
-          Value: !Ref AWS::StackName
-        - Key: Network
-          Value: Public
-        - Key: Name
-          Value: !Join
-            - ""
-            - - !Ref VPCName
-              - -IGW
-
-  GatewayToInternet:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-
-  PublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Application
-          Value: !Ref AWS::StackName
-        - Key: Network
-          Value: Public
-        - Key: Name
-          Value: !Join
-            - ""
-            - - !Ref VPCName
-              - -public-route-table
-
-  PublicRoute:
-    Type: AWS::EC2::Route
-    DependsOn: GatewayToInternet
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-
-  PublicSubnetRouteTableAssociation0:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnet0
-      RouteTableId: !Ref PublicRouteTable
-
-  ElasticIP0:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-
-  NATGateway0:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt ElasticIP0.AllocationId
-      SubnetId: !Ref PublicSubnet0
-
-  PrivateRouteTable0:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Join
-            - ""
-            - - !Ref VPCName
-              - -private-route-table-0
-
-  PrivateRouteToInternet0:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable0
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway0
-
-  PrivateSubnetRouteTableAssociation0:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnet0
-      RouteTableId: !Ref PrivateRouteTable0
-
 Outputs:
   VPCId:
     Description: VPCId of VPC
     Value: !Ref VPC
     Export:
       Name: !Sub ${AWS::Region}-${AWS::StackName}-VPC
-
   PublicSubnet0:
     Description: SubnetId of public subnet 0
     Value: !Ref PublicSubnet0
     Export:
       Name: !Sub ${AWS::Region}-${AWS::StackName}-PublicSubnet0
-
   PrivateSubnet0:
     Description: SubnetId of private subnet 0
     Value: !Ref PrivateSubnet0

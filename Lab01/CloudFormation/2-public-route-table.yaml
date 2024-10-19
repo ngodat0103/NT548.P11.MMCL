@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 'Set up Route Table'
+Parameters:
+  SubnetPublicId:
+    Type: AWS::EC2::Subnet::Id
+    Description: ""
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: ""
+Resources:
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Join
+            - ""
+            - - -IGW
+              - - !Ref VPCId
+  GatewayToInternet:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPCId
+      InternetGatewayId: !Ref InternetGateway
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCId
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Join
+            - ""
+            - - !Ref VPCId
+              - -public-route-table
+  PublicSubnetRouteTableAssociation0:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicId
+      RouteTableId: !Ref PublicRouteTable
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+Outputs:
+  PublicRouteTable:
+    Description: The ID of the public route table
+    Value: !Ref PublicRouteTable
+  PublicRouteTableAssociation:
+    Description: The ID of the public route table association
+    Value: !Ref PublicSubnetRouteTableAssociation0
