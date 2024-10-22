@@ -17,10 +17,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join
-            - ""
-            - - -IGW
-              - - !Ref VPCId
+          Value: !Join ["-",[IGW,!Ref VPCId]]
   GatewayToInternet:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -36,10 +33,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join
-            - ""
-            - - !Ref VPCId
-              - -public-route-table
+          Value: !Join ["-",[!Ref VPCId,public-route-table]]
   PublicSubnetRouteTableAssociation0:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:

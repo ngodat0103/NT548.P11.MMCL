@@ -12,9 +12,6 @@ Parameters:
   VPC:
     Type: AWS::EC2::VPC::Id
     Description: VPC ID
-  PublicSubnetID:
-    Type: AWS::EC2::Subnet::Id
-    Description: Public subnet ID
 Resources:
   PublicNetworkAcl:
     Type: AWS::EC2::NetworkAcl
@@ -30,7 +27,6 @@ Resources:
             - ""
             - - !Ref VPC
               - -public-nacl
-
   InboundAllowAllNetworkAclEntry:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -56,13 +52,6 @@ Resources:
       PortRange:
         From: "0"
         To: "65535"
-
-  PublicSubnetNetworkAclAssociation0:
-    Type: AWS::EC2::SubnetNetworkAclAssociation
-    Properties:
-      SubnetId: !Ref PublicSubnetID
-      NetworkAclId: !Ref PublicNetworkAcl
-
   SecurityGroupPublicInstance:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -73,8 +62,8 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: !Ref AllowSSHIP
-        - IpProtocol: 'icmp'
-          FromPort: '-1'
+        - IpProtocol: icmp
+          FromPort: '8'
           ToPort: '-1'
           CidrIp: !Ref AllowSSHIP
       SecurityGroupEgress:
