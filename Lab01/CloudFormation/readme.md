@@ -21,11 +21,11 @@ This repository contains AWS CloudFormation templates to set up a VPC with publi
 1. Navigate to the `CloudFormation` directory.
 2. Make the script executable (if not already):
    ```sh
-   chmod +x deploy-all.sh
+   chmod +x main.sh
    ```
 3. Run the script to deploy all stacks:
    ```sh
-   ./deploy-all.sh [region] [stack-name-prefix] [allow-ssh-ip] [instance-type]
+   ./main.sh [region] [stack-name-prefix] [allow-ssh-ip] [instance-type]
    ```
 
    - `region`: (Optional) The AWS region to deploy the stacks. Default is `us-east-1`.
@@ -36,7 +36,7 @@ This repository contains AWS CloudFormation templates to set up a VPC with publi
 ### Example Command
 
 ```sh
-./deploy-all.sh us-west-2 CustomStackPrefix 192.168.1.0/24 t2.micro
+./main.sh us-west-2 CustomStackPrefix 192.168.1.0/24 t2.micro
 ```
 
 This command will deploy the stacks in the `us-west-2` region with a custom stack name prefix, allowing SSH access from the `192.168.1.0/24` IP range, and using `t2.micro` as the instance type.

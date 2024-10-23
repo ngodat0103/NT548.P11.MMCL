@@ -1,9 +1,12 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: 'Set up Route Table'
 Parameters:
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: "Public subnetId for the NAT Gateway"
   PrivateSubnetId:
     Type: AWS::EC2::Subnet::Id
-    Description: ""
+    Description: "The ID of the private subnet"
   VPCId:
     Type: AWS::EC2::VPC::Id
     Description: ""
@@ -16,7 +19,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt ElasticIP0.AllocationId
-      SubnetId: !Ref PrivateSubnetId
+      SubnetId: !Ref PublicSubnetId
   PrivateRouteTable0:
     Type: AWS::EC2::RouteTable
     Properties:

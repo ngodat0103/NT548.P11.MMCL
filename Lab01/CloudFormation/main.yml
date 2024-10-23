@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  Root stack that creates the VPC, NAT Gateway, Route Tables, Security Groups, and EC2 Instances.
+Parameters:
+  BucketName:
+    Description: The name of the S3 bucket
+    Type: String
+    Default: group7-bucket
+  sshPrivateKey:
+    Description: 'The SSH private key to be used for accessing the EC2 instances. This key should be kept secure and not shared.'
+    Type: 'String'
+    MinLength: '1'
+    ConstraintDescription: 'Must be a valid SSH private key in PEM format using base64 encoded.'
+    NoEcho: 'true'
+  KeyName:
+    Description: 'The name of an existing EC2 KeyPair to enable SSH access to the instance. This KeyPair must already exist in the AWS region.'
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: 'Must be the name of an existing EC2 KeyPair.'
+  LatestAmiId:
+    Description: 'The ID of the latest Amazon Machine Image (AMI) to use for the EC2 instances. This parameter uses the AWS Systems Manager Parameter Store to get the latest AMI ID.'
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  InstanceType:
+    Description: 'The type of EC2 instance to launch. This parameter allows selection from a list of valid instance types, such as t2.micro, t3.small, etc.'
+    Type: String
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.9xlarge
+      - g3.8xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - i3.xlarge
+      - i3.2xlarge
+      - i3.4xlarge
+      - i3.8xlarge
+      - d2.xlarge
+      - d2.2xlarge
+      - d2.4xlarge
+      - d2.8xlarge
+    Default: t3.small
+    ConstraintDescription: 'Must be a valid EC2 instance type from the allowed values list.'
+
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${BucketName}.s3.amazonaws.com/0-vpc.yml
+  SecurityGroupStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [VPCStack]
+    Properties:
+      TemplateURL: !Sub https://${BucketName}.s3.amazonaws.com/1-security.yml
+      Parameters:
+        VPC: !GetAtt VPCStack.Outputs.VPCId
+  PublicRouteTableStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [VPCStack]
+    Properties:
+      TemplateURL: !Sub https://${BucketName}.s3.amazonaws.com/2-public-route-table.yml
+      Parameters:
+        VPCId: !GetAtt VPCStack.Outputs.VPCId
+        SubnetPublicId: !GetAtt VPCStack.Outputs.PublicSubnet0
+  PrivateRouteTableStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [VPCStack]
+    Properties:
+      TemplateURL: !Sub https://${BucketName}.s3.amazonaws.com/3-private-route-table.yml
+      Parameters:
+          VPCId: !GetAtt VPCStack.Outputs.VPCId
+          PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
+          PrivateSubnetId: !GetAtt VPCStack.Outputs.PrivateSubnet0
+  EC2InstanceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [VPCStack, SecurityGroupStack,PublicRouteTableStack,PrivateRouteTableStack]
+    Properties:
+      TemplateURL: !Sub https://${BucketName}.s3.amazonaws.com/4-ec2.yml
+      Parameters:
+        PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
+        PrivateSubnetId: !GetAtt VPCStack.Outputs.PrivateSubnet0
+        SecurityGroupPublicInstanceId: !GetAtt SecurityGroupStack.Outputs.SecurityGroupPublicInstanceId
+        SecurityGroupPrivateInstanceId: !GetAtt SecurityGroupStack.Outputs.SecurityGroupPrivateInstanceId
+        sshPrivateKey: !Ref sshPrivateKey
+        KeyName: !Ref KeyName
+        LatestAmiId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
