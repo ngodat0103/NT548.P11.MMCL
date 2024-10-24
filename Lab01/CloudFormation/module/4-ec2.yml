@@ -98,6 +98,8 @@ Resources:
           chown ec2-user:ec2-user /home/ec2-user/.ssh/key.pem
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
       Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicInstance
         - Key: Lab01
           Value: 'EC2PublicInstance'
   IPAddress:
@@ -117,5 +119,7 @@ Resources:
       KeyName: !Ref KeyName
       ImageId: !Ref LatestAmiId
       Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateInstance
         - Key: Lab01
           Value: 'EC2PrivateInstance'

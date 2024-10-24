@@ -77,4 +77,4 @@ check_bucket_exists "$S3_BUCKET"
 # Upload .yaml files to S3 bucket using a loop
 find module -name "*.yml" -exec aws s3 cp {} "s3://$S3_BUCKET" \; -exec echo "{} uploaded successfully." \;
 
-echo "All .yaml files uploaded to S3 bucket."
+echo "All .yml files uploaded to S3 bucket."
