@@ -1,13 +1,13 @@
-name: gateway-svc-dev
+name: user-svc-dev
 services:
-  gateway-svc:
-    image: ghcr.io/ngodat0103/nt548/gateway-svc:${TAG:-dev-latest}
+  user-svc:
+    image: ghcr.io/ngodat0103/nt548/user-svc:${TAG:-dev-latest}
     build:
       dockerfile: Dockerfile
       args:
-        SERVICE_NAME: gateway-svc
+        SERVICE_NAME: user-svc
         VERSION: ${TAG:-dev-latest}
-        SERVICE_PORT: 8000
+        SERVICE_PORT: 8002
     environment:
       - SPRING_PROFILES_ACTIVE=local-dev
 networks:

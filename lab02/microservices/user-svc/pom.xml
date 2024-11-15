@@ -3,13 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.ngodat0103</groupId>
-        <artifactId>yamp</artifactId>
-        <version>latest</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
     </parent>
     <groupId>com.github.ngodat0103.yamp</groupId>
     <artifactId>user-svc</artifactId>
-    <version>0.0.1</version>
+    <version>${revision}</version>
     <name>usersvc</name>
     <description>User-service</description>
     <properties>
