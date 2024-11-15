@@ -1,0 +1,77 @@
+name: auth-svc-dev
+services:
+  auth-svc-db:
+    container_name: share-db
+    image: "bitnami/postgresql:16.4.0-debian-12-r23"
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        cat <<EOF > /docker-entrypoint-initdb.d/init-dev-user.sql
+        create role "auth-svc-user" with password 'auth-svc-user-password' ; 
+        create database "auth-svc-db" with owner  "auth-svc-user";
+        grant connect to "auth-svc-user";
+        alter role "auth-svc-user" with login; 
+        EOF
+        /opt/bitnami/scripts/postgresql/entrypoint.sh /opt/bitnami/scripts/postgresql/run.sh
+    ports:
+      - "5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  zookeeper:
+    container_name: zookeeper
+    networks:
+      - yamp-network
+    image: confluentinc/cp-zookeeper:7.4.6
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181"
+  kafka:
+    restart: unless-stopped
+    networks:
+     - yamp-network
+    container_name: kafka
+    hostname: kafka-svc
+    image: confluentinc/cp-kafka:7.4.6
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-svc:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  auth-svc:
+    container_name: auth-svc
+    image: ghcr.io/ngodat0103/nt548/auth-svc:${TAG:-dev-latest}
+    build:
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: auth-svc
+        VERSION: ${TAG:-dev-latest}
+        SERVICE_PORT: 8001
+    depends_on:
+      - auth-svc-db
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=local-dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-svc-db:5432/auth-svc-db
+      - SPRING_DATASOURCE_USERNAME=auth-svc-user
+      - SPRING_DATASOURCE_PASSWORD=auth-svc-user-password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-svc:9092
+volumes:
+  postgres-data:
+    name: auth-svc-db-volume
+networks:
+  yamp-network:
+    name: yamp-dev
+    external: true
