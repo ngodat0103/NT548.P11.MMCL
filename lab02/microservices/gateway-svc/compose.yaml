@@ -1,0 +1,17 @@
+name: gateway-svc-dev
+services:
+  gateway-svc:
+    container_name: gateway-svc
+    image: ghcr.io/ngodat0103/nt548/gateway-svc:${TAG:-dev-latest}
+    build:
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: gateway-svc
+        VERSION: ${TAG:-dev-latest}
+        SERVICE_PORT: 8000
+    environment:
+      - SPRING_PROFILES_ACTIVE=local-dev
+networks:
+  yamp-network:
+    name: yamp-dev
+    external: true

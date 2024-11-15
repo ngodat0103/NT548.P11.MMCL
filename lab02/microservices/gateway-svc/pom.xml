@@ -3,13 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.github.ngodat0103</groupId>
-		<artifactId>yamp</artifactId>
-		<version>latest</version>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.3.4</version>
+		<relativePath/>
 	</parent>
 	<groupId>com.github.ngodat0103.yamp</groupId>
 	<artifactId>gateway-svc</artifactId>
-	<version>0.0.1</version>
+	<version>${revision}</version>
 	<name>API Gateway Server</name>
 	<description>API gateway Server</description>
 	<url/>
@@ -145,4 +146,13 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>3.3.4</version>
+			</plugin>
+		</plugins>
+	</build>
 </project>
