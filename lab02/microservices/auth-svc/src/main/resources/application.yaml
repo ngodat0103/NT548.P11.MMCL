@@ -14,9 +14,9 @@ spring:
     name: auth-svc
   kafka:
     consumer:
-      group-id: auth-svc
+      value-deserializer:  org.apache.kafka.common.serialization.StringDeserializer
       key-deserializer: org.apache.kafka.common.serialization.UUIDDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: 'auth-svc'
   jpa:
     open-in-view: false
   data:

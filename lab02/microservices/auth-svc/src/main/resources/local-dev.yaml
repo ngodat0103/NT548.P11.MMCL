@@ -1,12 +1,10 @@
 spring:
-  cloud:
-    inetutils:
-      default-hostname: "yamp-backend.local"
   config:
     activate:
       on-profile: local-dev
   kafka:
-    bootstrap-servers: [ kafka-svc:9092 ]
+    consumer:
+      bootstrap-servers: [kafka-svc:9092]
   datasource:
     url: jdbc:postgresql://localhost:5432/auth-svc-db
   jpa:

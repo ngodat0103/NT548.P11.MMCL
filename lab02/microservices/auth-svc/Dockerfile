@@ -1,7 +1,7 @@
 FROM maven:3.9.8-eclipse-temurin-17 AS app-builder
 WORKDIR /build
-COPY mvnw .
-COPY .mvn .mvn
+COPY --chmod=555 mvnw .
+COPY --chmod=555 .mvn .mvn
 COPY pom.xml .
 RUN \
     --mount=type=cache,target=/root/.m2 \
@@ -10,8 +10,7 @@ COPY ./src/main ./src/main
 ARG VERSION
 ARG SERVICE_NAME
 ENV JAR_PATH=/build/target/${SERVICE_NAME}-${VERSION}.jar
-RUN mvn clean install -q -DskipTests && \
-    mvn clean package -q -DskipTests -Drevision=${VERSION} && \
+RUN  mvn clean package -q -DskipTests -Drevision=${VERSION} && \
     java -Djarmode=tools -jar "$JAR_PATH" extract --layers --launcher --destination target/layers
 
 FROM eclipse-temurin:17-jdk-alpine AS jre-builder
