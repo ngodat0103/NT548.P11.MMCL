@@ -1,1 +1,3 @@
 /Lab01/CloudFormation/ec2-temp.yaml
+.vagrant
+.idea

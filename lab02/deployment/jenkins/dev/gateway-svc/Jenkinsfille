@@ -1,0 +1,80 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY_URL = 'ghcr.io'
+        NAMESPACE = 'yamp-dev'
+        BRANCH_NAME = 'dev'
+        TAG = "${BRANCH_NAME}-${GITHUB_SHA}"
+        SERVICE_PATH='lab02/microservices/gateway-svc'
+        HELM_OF_SERVICE_PATH='lab02/deployment/kubernetes/helm/gateway-svc'
+        GIT_URL='https://github.com/ngodat0103/NT548.P11.MMCL.git'
+    }
+    stages {
+        stage('Build') {
+            agent {
+                node{
+                    label 'builder'
+                }
+            }
+            steps {
+                checkout scmGit(
+                    branches: [[name: "${BRANCH_NAME}"]],
+                    userRemoteConfigs: [[url: "${GIT_URL}"]]
+                )
+                dir("${SERVICE_PATH}") {
+                    sh 'echo "TAG=$TAG" > .env'
+                    sh 'docker compose build'
+                    withCredentials([usernamePassword(credentialsId: 'docker-credential', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh 'docker login $REGISTRY_URL -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                        sh 'docker compose push'
+                        sh 'docker logout $REGISTRY_URL'
+                    }
+                }
+
+            }
+        }
+        stage('test') {
+            steps {
+                sh "echo 'Testing'"
+                sh 'sleep 2'
+            }
+        }
+        stage('Deploying to the dev docker environment') {
+            agent {
+                node {
+                    label 'dev-docker'
+                }
+            }
+            steps {
+                checkout scmGit(
+                    branches: [[name: "${BRANCH_NAME}"]],
+                    userRemoteConfigs: [[url: "${GIT_URL}"]]
+                )
+                dir("${SERVICE_PATH}") {
+                    sh 'echo "TAG=$TAG" > .env'
+                    sh 'sudo docker compose pull'
+                    sh 'sudo docker compose up -d'
+                }
+            }
+        }
+        stage('Deploying to the dev Kubernetes environment'){
+            agent {
+                node {
+                    label 'dev-k8s'
+                }
+            }
+            steps {
+                checkout scmGit(
+                    branches: [[name: "${BRANCH_NAME}"]],
+                    userRemoteConfigs: [[url: "${GIT_URL}"]]
+                )
+                dir("${HELM_OF_SERVICE_PATH}") {
+                    withKubeConfig(credentialsId: 'k8s-dev-config') {
+                      sh "helm upgrade --install gateway-svc --create-namespace --namespace yamp-dev . --set image.tag=$TAG"
+                    }
+                   
+                }
+            }
+        }
+    }
+}
