@@ -1,4 +1,4 @@
-name: Gateway-svc webhook
+name: auth-svc webhook
 on:
   workflow_dispatch:
   push:
