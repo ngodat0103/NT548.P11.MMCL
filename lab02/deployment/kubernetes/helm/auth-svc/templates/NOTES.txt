@@ -9,11 +9,11 @@ To learn more about the release, you can run:
 
 To get the logs of the auth-svc pods, you can run:
 
-  kubectl logs -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Values.namespace }}
+  kubectl logs -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }}
 
 To port forward the auth-svc service to your local machine, you can run:
 
-  kubectl port-forward svc/{{ include "auth-svc.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Values.namespace }}
+  kubectl port-forward svc/{{ include "auth-svc.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
 
 This will forward the service port {{ .Values.service.port }} to your local machine, allowing you to access the service at http://localhost:{{ .Values.service.port }}.
 

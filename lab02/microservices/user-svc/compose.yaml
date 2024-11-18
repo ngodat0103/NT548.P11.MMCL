@@ -1,6 +1,39 @@
-name: user-svc-dev
 services:
+  user-svc-db:
+    container_name: user-svc-db
+    profiles: [ 'dev','all' ]
+    image: "bitnami/postgresql:16.4.0-debian-12-r23"
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        cat <<EOF > /docker-entrypoint-initdb.d/init-dev-user.sql
+        create role "dev" with password 'dev' ; 
+        create database "user-svc-db" with owner  "dev";
+        grant connect to "user-svc-user";
+        alter role "dev" with login; 
+        EOF
+        /opt/bitnami/scripts/postgresql/entrypoint.sh /opt/bitnami/scripts/postgresql/run.sh
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  zookeeper:
+    profiles: ['dev','all']
+    extends:
+      service: zookeeper
+      file: ../auth-svc/compose.yaml
+  kafka-svc:
+    profiles: ['dev','all']
+    extends:
+      service: kafka-svc
+      file: ../auth-svc/compose.yaml
   user-svc:
+    profiles: ['all']
     image: ghcr.io/ngodat0103/nt548/user-svc:${TAG:-dev-latest}
     build:
       dockerfile: Dockerfile
@@ -10,6 +43,12 @@ services:
         SERVICE_PORT: 8002
     environment:
       - SPRING_PROFILES_ACTIVE=local-dev
+volumes:
+  postgres-data:
+  var-lib-zookeeper-data:
+    external: true
+  var-lib-zookeeper-log:
+    external: true
 networks:
   yamp-network:
     name: yamp-dev

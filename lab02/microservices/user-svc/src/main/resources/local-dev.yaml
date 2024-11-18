@@ -1,13 +1,7 @@
 spring:
-  data:
-    redis:
-      client-type: lettuce
-      host: localhost
-      port: 6379
-      database: 2
-      client-name: user-svc
   kafka:
-    bootstrap-servers: [ kafka-svc:9092 ]
+    producer:
+      bootstrap-servers: ["kafka-svc:9092"]
   cloud:
     inetutils:
       default-hostname: yamp-backend.local
@@ -16,8 +10,10 @@ spring:
     activate:
       on-profile: local-dev
   datasource:
+    username: dev
     url: jdbc:postgresql://localhost:5432/user-svc-db
     driver-class-name: org.postgresql.Driver
+    password: dev
   jpa:
     show-sql: true
     hibernate:
