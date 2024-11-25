@@ -2,12 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 2
 
-# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: ghcr.io/ngodat0103/nt548/user-svc
+  repository: ghcr.io/ngodat0103/se347-backend/user-svc
   # This sets the pull policy for images.
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -42,7 +39,15 @@ service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 8002
+  ports:
+    - name: web-app
+      protocol: TCP
+      port: 5000
+      targetPort: 5000
+    - name: mongodb
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 
@@ -62,7 +67,7 @@ resources: {}
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
-    port: 8002
+    port: 5000
   initialDelaySeconds: 10
   periodSeconds: 30
   timeoutSeconds: 5
@@ -70,7 +75,7 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /actuator/health/readiness
-    port: 8002
+    port: 5000
   initialDelaySeconds: 10
   periodSeconds: 30
   timeoutSeconds: 5
@@ -79,45 +84,58 @@ readinessProbe:
 #This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: true
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
+volumes:
+ - name: user-svc-mongo-volume
+   persistentVolumeClaim:
+     claimName: user-svc-mongo-pvc
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+volumeMounts:
+ - name: user-svc-mongo-volume
+   mountPath: "bitnami/mongodb"
+   readOnly: false
 configMap:
-  value:
-    SPRING_PROFILES_ACTIVE: local-dev
-    SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-svc
-    SPRING_DATASOURCE_USERNAME: dev
-    SPRING_DATASOURCE_PASSWORD: dev
-    SPRING_DATASOURCE_URL: jdbc:postgresql://user-svc-postgresql:5432/user-svc-db
-commonConfigMap: {}
-#  - configMapRef:
-#      name: tempo-common-configmap
-#      optional: true
+  mongodb:
+    MONGODB_REPLICA_SET_MODE: primary
+    MONGODB_REPLICA_SET_KEY: replicaSetKey123
+    MONGODB_DATABASE: user-svc
+    MONGODB_REPLICA_SET_NAME: rs0
+    MONGODB_PORT_NUMBER: 27017
+  app:
+    SPRING_PROFILES_ACTIVE: staging
+    SPRING_DATA_MONGODB_HOST: 127.0.0.1
+    SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka-svc
 secretRef:
-  name: "auth-svc-secret"
+  name: "user-svc-secret"
 nodeSelector: {}
 
 tolerations: []
-postgresql:
-  fullnameOverride: user-svc-postgresql
-  global:
-    postgresql:
-      auth:
-        username: "dev"
-        database: user-svc-db
-        password: 'dev'
-affinity: {}
+
+secretStores:
+  vault:
+    server: {}
+    path: "secrets"
+    # Version is the Vault KV secret engine version.
+    # This can be either "v1" or "v2", defaults to "v2"
+    version: "v2"
+    auth:
+      # points to a secret that contains a vault token
+      # https://www.vaultproject.io/docs/auth/token
+      tokenSecretRef:
+        name: "user-svc-vault"
+        key: "token"
+persistence:
+    enabled: true
+    storageClass: "standard"
+    # A manually managed Persistent Volume and Claim
+    # Requires Persistence.enabled: true
+    existingClaim: user-svc-mongo-pvc
+    # storageClass: "standard"
+    accessMode: ReadWriteOnce
+    size: 10Gi
