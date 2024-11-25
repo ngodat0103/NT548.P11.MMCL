@@ -3,9 +3,12 @@ kind: ConfigMap
 metadata:
   name: {{ include "user-svc.fullname" . -}}-configmap
   labels:
-    {{- include "user-svc.labels" . | nindent 4}}
+    {{- include "user-svc.labels" . | nindent 4 }}
 data:
-  {{- range $key, $value := .Values.configMap.value }}
+  APP_VERSION: {{ .Values.image.tag | quote }}
+  {{- range $key, $value := .Values.configMap.app }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
-  APP_VERSION: {{.Values.image.tag | default .Chart.AppVersion | quote}}
+  {{ range $key, $value:= .Values.configMap.mongodb }}
+  {{ $key }}: {{ $value | quote }}
+  {{ end }}

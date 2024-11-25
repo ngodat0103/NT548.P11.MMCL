@@ -1,7 +1,0 @@
-#
-name: yamp-dev
-services:
-  gateway-svc:
-    extends:
-      service: gateway-svc
-      file: gateway-svc/compose.yaml

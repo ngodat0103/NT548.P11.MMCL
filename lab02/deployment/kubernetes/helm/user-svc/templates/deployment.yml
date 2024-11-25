@@ -31,26 +31,40 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          env:
+            - name: SPRING_DATA_MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: MONGODB_USERNAME
+                  optional: false
+                  name: {{ .Values.secretRef.name }}
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MONGODB_PASSWORD
+                  optional: false
+                  name: {{ .Values.secretRef.name }}
           envFrom:
-            {{- with .Values.commonConfigMap}}
-            {{- . | nindent 12}}
-            {{- end}}
             - configMapRef:
                 name: {{ include "user-svc.fullname" . }}-configmap
                 optional: true
-            {{- with .Values.secretRef.name}}
+            {{- with .Values.secretRef.name }}
             - secretRef:
                 name: {{ . }}
                 optional: true
             {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{.Values.image.repository}}:{{.Values.image.tag | default .Chart.AppVersion}}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
+            {{- range .Values.service.ports  }}
+            {{- if eq .name "web-app" }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+              protocol: {{ .protocol }}
+              {{- end }}
+              {{- end }}
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
@@ -61,6 +75,22 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        - name: user-svc-mongodb
+          image: bitnami/mongodb:8.0.3-debian-12-r1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mongodb
+              containerPort: 27017
+              protocol: TCP
+          volumeMounts:
+                {{- toYaml .Values.volumeMounts | nindent 11 }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secretRef.name }}
+                optional: false
+            - configMapRef:
+                name: {{ include "user-svc.fullname" . }}-configmap
+                optional: false
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

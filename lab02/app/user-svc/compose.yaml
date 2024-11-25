@@ -1,0 +1,78 @@
+name: se347-backend
+services:
+  kafka-console:
+    extends:
+      file: ../compose.yaml
+      service: kafka-console
+  kafka:
+    extends:
+      file: ../compose.yaml
+      service: kafka
+  zookeeper:
+    extends:
+      file: ../compose.yaml
+      service: zookeeper
+  redis:
+    image: redis:alpine3.20
+    ports:
+      - "6379:6379"
+    networks: [dev]
+  mongo-primary:
+    profiles: ['dev','all']
+    image: bitnami/mongodb:8.0.3-debian-12-r1
+    container_name: mongo-primary
+    environment:
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicaSetKey123
+      - MONGODB_DATABASE=${MONGODB_DATABASE:-user-svc}
+      - MONGODB_REPLICA_SET_NAME=rs0
+      - MONGODB_PORT_NUMBER=27017
+      - mongodb_root_password=${mongodb_root_password:-root}
+      - mongodb_root_user=${mongodb_root_user:-root}
+      - mongodb_username=${mongodb_username:-dev}
+      - mongodb_password=${mongodb_password:-dev}
+    ports:
+      - "27017:27017"
+    networks: [dev]
+  user-svc:
+    profiles: ['all']
+    image: ${TAG:-ghcr.io/ngodat0103/se347-backend/user-svc:dev-latest}
+    environment:
+      - SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_DATA_MONGODB_HOST=mongo-primary
+      - SPRING_DATA_MONGODB_USERNAME=${MONGODB_USERNAME:-dev}
+      - SPRING_DATA_MONGODB_PASSWORD=${MONGODB_PASSWORD:-dev}
+      - SPRING_DATA_MONGODB_DATABASE=${MONGODB_DATABASE:-user-svc}
+      - APP_VERSION=${TAG:-dev-latest}
+      - SPRING_PROFILES_ACTIVE=staging
+      - SPRING_DATA_REDIS_HOST=redis
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVER_PORT: 5000
+        SERVICE_NAME: usersvc
+        VERSION: ${TAG:-dev-latest}
+    networks: [ dev ]
+    healthcheck:
+     test: ["CMD","curl","http://localhost:5000/actuator/health"]
+     interval: 3s
+     timeout: 3s
+     retries: 3
+    depends_on:
+      kafka:
+        condition: service_started
+      mongo-primary:
+        condition: service_started
+    ports:
+      - "5000:5000"
+volumes:
+  var-lib-zookeeper-data:
+    name: var-lib-zookeeper-data
+    external: true
+  bitnami-mongodb:
+    name: bitnami-mongodb
+networks:
+  dev:
+    name: dev
+    driver: bridge

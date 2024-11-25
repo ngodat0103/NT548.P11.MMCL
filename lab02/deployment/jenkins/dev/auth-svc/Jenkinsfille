@@ -40,6 +40,20 @@ pipeline {
                 sh 'sleep 2'
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                checkout scmGit (
+                    branches: [[name: "${BRANCH_NAME}"]],
+                    userRemoteConfigs: [[url: "${GIT_URL}"]]
+                )
+                dir("${SERVICE_PATH}") {
+                    withSonarQubeEnv('sonarqube') {
+                        sh 'sonar-scanner'
+                    }
+                }
+            }
+
+  }
         stage('Deploying to the dev docker environment') {
             agent {
                 node {

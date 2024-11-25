@@ -1,5 +1,0 @@
-kafka:
-  fullnameOverride: kafka-svc
-  listeners:
-    client:
-      protocol: PLAINTEXT
