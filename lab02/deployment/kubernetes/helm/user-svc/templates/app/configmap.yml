@@ -9,6 +9,3 @@ data:
   {{- range $key, $value := .Values.configMap.app }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
-  {{ range $key, $value:= .Values.configMap.mongodb }}
-  {{ $key }}: {{ $value | quote }}
-  {{ end }}

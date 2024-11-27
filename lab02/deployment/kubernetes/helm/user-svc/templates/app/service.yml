@@ -7,11 +7,11 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    {{- range .Values.service.ports}}
-    - name: {{.name}}
-      port: {{.port}}
-      targetPort: {{.targetPort}}
-      protocol: {{.protocol}}
-    {{end }}
+    {{- range .Values.service.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+    {{ end }}
   selector:
     {{- include "user-svc.selectorLabels" . | nindent 4 }}

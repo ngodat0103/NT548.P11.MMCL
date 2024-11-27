@@ -40,14 +40,10 @@ service:
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   ports:
-    - name: web-app
-      protocol: TCP
-      port: 5000
-      targetPort: 5000
-    - name: mongodb
-      protocol: TCP
-      port: 27017
-      targetPort: 27017
+   - name: http
+     protocol: TCP
+     port: 5000
+     targetPort: 5000
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 
@@ -84,7 +80,7 @@ readinessProbe:
 #This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: true
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
@@ -96,21 +92,19 @@ volumes:
      claimName: user-svc-mongo-pvc
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts:
- - name: user-svc-mongo-volume
-   mountPath: "bitnami/mongodb"
-   readOnly: false
 configMap:
-  mongodb:
-    MONGODB_REPLICA_SET_MODE: primary
-    MONGODB_REPLICA_SET_KEY: replicaSetKey123
+  db:
     MONGODB_DATABASE: user-svc
+    MONGODB_USERNAME: user-svc
+    MONGODB_REPLICA_SET_MODE: primary
     MONGODB_REPLICA_SET_NAME: rs0
-    MONGODB_PORT_NUMBER: 27017
   app:
     SPRING_PROFILES_ACTIVE: staging
-    SPRING_DATA_MONGODB_HOST: 127.0.0.1
-    SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS: kafka-svc
+    SPRING_DATA_MONGODB_HOST: user-svc-mongodb
+    SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-svc:9092
+    SPRING_DATA_MONGODB_DATABASE: user-svc
+    SPRING_DATA_MONGODB_USERNAME: user-svc
+    SPRING_DATA_REDIS_HOST: redis-svc-master
 secretRef:
   name: "user-svc-secret"
 nodeSelector: {}
@@ -130,12 +124,3 @@ secretStores:
       tokenSecretRef:
         name: "user-svc-vault"
         key: "token"
-persistence:
-    enabled: true
-    storageClass: "standard"
-    # A manually managed Persistent Volume and Claim
-    # Requires Persistence.enabled: true
-    existingClaim: user-svc-mongo-pvc
-    # storageClass: "standard"
-    accessMode: ReadWriteOnce
-    size: 10Gi

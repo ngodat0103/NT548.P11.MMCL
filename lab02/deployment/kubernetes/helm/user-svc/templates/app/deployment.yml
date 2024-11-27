@@ -32,16 +32,10 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           env:
-            - name: SPRING_DATA_MONGODB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: MONGODB_USERNAME
-                  optional: false
-                  name: {{ .Values.secretRef.name }}
             - name: SPRING_DATA_MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  key: MONGODB_PASSWORD
+                  key: mongodb-passwords
                   optional: false
                   name: {{ .Values.secretRef.name }}
           envFrom:
@@ -58,43 +52,17 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            {{- range .Values.service.ports  }}
-            {{- if eq .name "web-app" }}
-            - name: {{ .name }}
-              containerPort: {{ .port }}
+            {{- range .Values.service.ports }}
+            - containerPort: {{ .port }}
               protocol: {{ .protocol }}
-              {{- end }}
-              {{- end }}
+              name: {{ .name }}
+            {{- end }}
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-        - name: user-svc-mongodb
-          image: bitnami/mongodb:8.0.3-debian-12-r1
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: mongodb
-              containerPort: 27017
-              protocol: TCP
-          volumeMounts:
-                {{- toYaml .Values.volumeMounts | nindent 11 }}
-          envFrom:
-            - secretRef:
-                name: {{ .Values.secretRef.name }}
-                optional: false
-            - configMapRef:
-                name: {{ include "user-svc.fullname" . }}-configmap
-                optional: false
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
