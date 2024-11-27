@@ -9,6 +9,8 @@ pipeline {
         SERVICE_PATH="lab02/app/${SERVICE_NAME}"
         HELM_OF_SERVICE_PATH="lab02/deployment/kubernetes/helm/${SERVICE_NAME}"
         GIT_URL='https://github.com/ngodat0103/NT548.P11.MMCL.git'
+        SONAR_HOST_URL =  withCredentials([string(credentialsId: "SONAR_HOST_URL", variable: "SONAR_HOST_URL")]) { return "${SONAR_HOST_URL}" }
+        SONAR_TOKEN = withCredentials([string(credentials) { return "${SONAR_TOKEN}" }])
     }
     stages {
         stage('Build') {

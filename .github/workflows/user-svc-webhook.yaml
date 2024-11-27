@@ -9,8 +9,8 @@ on:
       - "lab02/app/user-svc/Dockerfile"
  
 jobs:   
-  gateway:
-    name: Gateway-svc webhook
+  send-webhook:
+    name: Send webhook to Jenkins
     runs-on: ubuntu-latest
     steps:
       - name: Send webhook to Jenkins
