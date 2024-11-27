@@ -8,9 +8,7 @@ pipeline {
         TAG = "${BRANCH_NAME}-${GITHUB_SHA}"
         SERVICE_PATH="lab02/app/${SERVICE_NAME}"
         HELM_OF_SERVICE_PATH="lab02/deployment/kubernetes/helm/${SERVICE_NAME}"
-        GIT_URL='https://github.com/ngodat0103/NT548.P11.MMCL.git'
-        SONAR_HOST_URL =  withCredentials([string(credentialsId: "SONAR_HOST_URL", variable: "SONAR_HOST_URL")]) { return "${SONAR_HOST_URL}" }
-        SONAR_TOKEN = withCredentials([string(credentials) { return "${SONAR_TOKEN}" }])
+        GIT_URL='https://github.com/ngodat0103/NT548.P11.MMCL.git' 
     }
     stages {
         stage('Build') {
@@ -59,15 +57,18 @@ pipeline {
             }
         }
         stage('SonarQube Analysis') {
+            agent {
+                node {
+                    label 'builder'
+                }
+            }
             steps {
                 checkout scmGit (
                     branches: [[name: "${BRANCH_NAME}"]],
                     userRemoteConfigs: [[url: "${GIT_URL}"]]
                 )
                 dir("${SERVICE_PATH}") {
-                    withSonarQubeEnv('sonarqube') {
                         sh './mvnw sonar:sonar'
-                    }
                 }
             }
 
@@ -75,7 +76,7 @@ pipeline {
         stage('Deploying to the dev docker environment') {
             agent {
                 node {
-                    label 'dev-docker'
+                    label 'deploy-dev'
                 }
             }
             steps {
@@ -93,7 +94,7 @@ pipeline {
         stage('Deploying to the dev Kubernetes environment'){
             agent {
                 node {
-                    label 'dev-k8s'
+                    label 'deploy-dev'
                 }
             }
             steps {
