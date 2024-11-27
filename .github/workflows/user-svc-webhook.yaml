@@ -5,8 +5,8 @@ on:
     branches:
       - "dev"
     paths:
-      - "lab02/microservices/auth-svc/src/main/**"
-      - "lab02/microservices/auth-svc/Dockerfile"
+      - "lab02/app/user-svc/src/main/**"
+      - "lab02/app/user-svc/Dockerfile"
  
 jobs:   
   gateway:
@@ -19,4 +19,4 @@ jobs:
           webhook_url: ${{ secrets.WEBHOOK_ENDPOINT }}
           webhook_auth_type: 'bearer'
           webhook_type: 'json'
-          webhook_auth: ${{ secrets.WEBHOOK_AUTH_SVC_TOKEN }}
+          webhook_auth: ${{ secrets.WEBHOOK_USER_SVC_TOKEN }}

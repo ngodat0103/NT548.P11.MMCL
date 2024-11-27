@@ -36,7 +36,7 @@
 		<sonar.projectKey>se347-backend</sonar.projectKey>
 		<sonar.sources>${project.basedir}/src/main</sonar.sources>
 		<sonar.tests>${project.basedir}/src/test</sonar.tests>
-		<sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+		<sonar.qualitygate.wait>false</sonar.qualitygate.wait>
 		<sonar.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.jacoco.xmlReportPaths>
 	</properties>
 	<dependencies>

@@ -2,11 +2,11 @@ pipeline {
     agent any
     environment {
         REGISTRY_URL = 'ghcr.io'
-        NAMESPACE = 'yamp-dev'
+        NAMESPACE = 'se347-dev'
         BRANCH_NAME = 'dev'
-        SERVICE_NAME = 'auth-svc'
+        SERVICE_NAME = 'user-svc'
         TAG = "${BRANCH_NAME}-${GITHUB_SHA}"
-        SERVICE_PATH="lab02/microservices/${SERVICE_NAME}"
+        SERVICE_PATH="lab02/app/${SERVICE_NAME}"
         HELM_OF_SERVICE_PATH="lab02/deployment/kubernetes/helm/${SERVICE_NAME}"
         GIT_URL='https://github.com/ngodat0103/NT548.P11.MMCL.git'
     }
@@ -34,10 +34,26 @@ pipeline {
 
             }
         }
-        stage('test') {
+        stage('Unit Test') {
             steps {
                 sh "echo 'Testing'"
                 sh 'sleep 2'
+            }
+        }
+        stage ('Integration Test') {
+            agent {
+                node {
+                    label 'builder'
+                }
+            }
+            steps {
+                 checkout scmGit (
+                    branches: [[name: "${BRANCH_NAME}"]],
+                    userRemoteConfigs: [[url: "${GIT_URL}"]]
+                )
+                dir("${SERVICE_PATH}") {
+                    sh "./mvnw verify"
+                }
             }
         }
         stage('SonarQube Analysis') {
@@ -48,7 +64,7 @@ pipeline {
                 )
                 dir("${SERVICE_PATH}") {
                     withSonarQubeEnv('sonarqube') {
-                        sh 'sonar-scanner'
+                        sh './mvnw sonar:sonar'
                     }
                 }
             }
