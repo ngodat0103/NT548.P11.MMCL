@@ -27,7 +27,7 @@ pipeline {
                     sh 'docker compose --profile all build'
                     withCredentials([usernamePassword(credentialsId: 'docker-credential', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh 'docker login $REGISTRY_URL -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                        sh 'docker compose --profile push'
+                        sh 'docker compose --profile all push'
                         sh 'docker logout $REGISTRY_URL'
                     }
                 }
@@ -76,7 +76,7 @@ pipeline {
         stage('Deploying to the dev docker environment') {
             agent {
                 node {
-                    label 'deploy-dev'
+                    label 'docker-dev'
                 }
             }
             steps {
@@ -94,7 +94,7 @@ pipeline {
         stage('Deploying to the dev Kubernetes environment'){
             agent {
                 node {
-                    label 'deploy-dev'
+                    label 'k8s-dev'
                 }
             }
             steps {
@@ -104,7 +104,10 @@ pipeline {
                 )
                 dir("${HELM_OF_SERVICE_PATH}") {
                     withKubeConfig(credentialsId: 'k8s-dev-config') {
-                      sh "helm upgrade --install ${SERVICE_NAME} --create-namespace --namespace ${NAMESPACE} . --set image.tag=${TAG}"
+                        withCredentials([string(credentialsId: 'VAULT_URL', variable: 'VAULT_URL')]) {
+                            sh "helm upgrade --install ${SERVICE_NAME} --create-namespace --namespace ${NAMESPACE} . --set secretStores.vault.server=${VAULT_URL} --set image.tag=${TAG}"
+ 
+                        }
                     }
                    
                 }
