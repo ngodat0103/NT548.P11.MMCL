@@ -34,7 +34,7 @@
 # Conclusion
 
 For detailed insights into the time taken for each Jenkins step, refer to the following document:  
-**[Jenkins Step Details](./docs/jenkins-detail-steps.pdf)**
+**[Jenkins Step Details](./docs/jenkins-detail-steps.png)**
 
 ### Key Highlights:
 - **Pipeline Execution Time (with Cache):** Approximately **3 minutes 15 seconds**.
