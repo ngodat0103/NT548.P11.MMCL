@@ -1,4 +1,4 @@
-name: auth-svc webhook
+name: user-svc webhook
 on:
   workflow_dispatch:
   push:
