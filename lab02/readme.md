@@ -5,13 +5,11 @@
 
 ---
 
-## Build Stage
+## Pipeline Overview
 
 ![Overview](./docs/overview.png)
 
 ---
-
-## Integration Testing Stage
 
 ![Overview](./docs/overview2.png)
 
