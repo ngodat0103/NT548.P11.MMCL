@@ -38,7 +38,6 @@ For detailed insights into the time taken for each Jenkins step, refer to the fo
 - **Pipeline Execution Time (with Cache):** Approximately **3 minutes 15 seconds**.
 - **Deployment Strategy for Zero Downtime:**
   - **Docker:** Efficiently managed using `docker pull` and `docker up`.
-  - **Kubernetes:** Utilizing **blue-green deployment** for seamless transitions.
   - **Helm:** Used for efficient package management.
   - **Secrets Management:** Securely handled using an external **Vault**.
 
